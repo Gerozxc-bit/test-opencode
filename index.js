@@ -5,10 +5,20 @@ const http = require('http');
 const port = process.env.PORT || 4096;
 
 // Запускаем сервер OpenCode как дочерний процесс
+// Команда: opencode serve --hostname 0.0.0.0 --port <port>
 // Флаг --hostname 0.0.0.0 обязателен, чтобы Render мог пробросить трафик извне
-const opencode = spawn('npx', ['opencode', 'serve', '--port', String(port), '--hostname', '0.0.0.0'], {
+const opencode = spawn('opencode', ['serve', '--hostname', '0.0.0.0', '--port', String(port)], {
   stdio: 'inherit',
   shell: true
+});
+
+// Слушаем вывод от OpenCode, чтобы видеть логи в панели Render
+opencode.stdout.on('data', (data) => {
+  console.log(`[OpenCode]: ${data}`);
+});
+
+opencode.stderr.on('data', (data) => {
+  console.error(`[OpenCode Error]: ${data}`);
 });
 
 // Простой HTTP-сервер-заглушка для проверки работоспособности
