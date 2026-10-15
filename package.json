@@ -1,9 +1,11 @@
 {
-  "name": "my-server",
+  "name": "opencode-server",
   "version": "1.0.0",
   "main": "index.js",
   "scripts": {
-    "start": "node index.js"
+    "start": "opencode start"
   },
-  "dependencies": {}
+  "dependencies": {
+    "opencode": "latest"
+  }
 }
