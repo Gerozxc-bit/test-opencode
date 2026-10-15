@@ -3,9 +3,9 @@
   "version": "1.0.0",
   "main": "index.js",
   "scripts": {
-    "start": "opencode start"
+    "start": "node index.js"
   },
   "dependencies": {
-    "opencode": "latest"
+    "opencode-ai": "latest"
   }
 }
