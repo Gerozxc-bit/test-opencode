@@ -1,26 +1,37 @@
 const { spawn } = require('child_process');
-const http = require('http');
 
-const port = process.env.PORT || 4096;
+// Render автоматически назначает порт через переменную окружения PORT (обычно 10000)
+const port = process.env.PORT || 10000;
 
-// Запускаем OpenCode через npx (он установится локально из package.json)
-const opencode = spawn('npx', ['opencode', 'serve', '--hostname', '0.0.0.0', '--port', String(port)], {
-  stdio: 'inherit', // Логи OpenCode будут автоматически видны в панели Render
-  shell: true
+console.log(`Starting OpenCode on port ${port}...`);
+
+// Формируем аргументы для запуска сервера OpenCode
+// --hostname 0.0.0.0 обязателен, чтобы Render мог перенаправлять трафик
+const args = ['opencode', 'serve', '--hostname', '0.0.0.0', '--port', String(port)];
+
+// Запускаем OpenCode как дочерний процесс
+// stdio: 'inherit' позволяет видеть логи OpenCode прямо в панели Render
+// shell: true нужен для корректного запуска npx в Linux-окружении Render
+const opencode = spawn('npx', args, {
+  stdio: 'inherit',
+  shell: true,
+  // Передаем все переменные окружения Render (включая OPENCODE_SERVER_PASSWORD) в OpenCode
+  env: { ...process.env } 
 });
 
-// Простой HTTP-сервер, чтобы Render видел, что порт открыт
-const server = http.createServer((req, res) => {
-  res.writeHead(200, { 'Content-Type': 'text/plain' });
-  res.end('OpenCode server is running!\n');
+// Обработка ошибок запуска
+opencode.on('error', (err) => {
+  console.error('Failed to start OpenCode:', err);
 });
 
-server.listen(port, '0.0.0.0', () => {
-  console.log(`Proxy listening on port ${port}`);
+// Логирование завершения процесса
+opencode.on('close', (code) => {
+  console.log(`OpenCode process exited with code ${code}`);
 });
 
-// Корректное завершение при перезапуске
+// Корректное завершение при перезапуске сервера Render
 process.on('SIGTERM', () => {
+  console.log('SIGTERM received, shutting down OpenCode...');
   opencode.kill();
-  server.close();
+  process.exit(0);
 });
